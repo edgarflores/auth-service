@@ -274,6 +274,25 @@ const { accessToken, refreshToken } = await response.json();
 
 ---
 
+## Tests
+
+Los tests usan `.env.test` para la configuración (copia de `.env.example` con `DB_NAME=auth_db` por defecto).
+
+```bash
+# Tests unitarios (AuthService, AuthController, HealthController)
+yarn test
+
+# Tests E2E (health, docs, metrics, flujo auth completo)
+yarn test:e2e
+
+# Cobertura
+yarn test:cov
+```
+
+**Requisitos para E2E:** PostgreSQL en ejecución con la base de datos configurada en `.env.test`. Ejecutar migraciones antes: `yarn migration:run`.
+
+---
+
 ## Scripts disponibles
 
 | Comando | Descripción |
@@ -286,7 +305,8 @@ const { accessToken, refreshToken } = await response.json();
 | `yarn migration:revert` | Revertir última migración |
 | `yarn seed` | Ejecutar seeders |
 | `yarn test` | Tests unitarios |
-| `yarn test:e2e` | Tests e2e |
+| `yarn test:e2e` | Tests E2E |
+| `yarn test:cov` | Tests con cobertura |
 
 ---
 

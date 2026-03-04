@@ -23,6 +23,8 @@ Backend architecture combining DDD tactical patterns, Clean Architecture depende
 
 **Start simple. Evolve complexity only when needed.** Most systems don't need full CQRS or Event Sourcing.
 
+> **auth-service:** Actualmente usa estructura pragmática NestJS (controller → service → repository) sin carpetas `domain/`, `application/`, `infrastructure/`. Es válido para el tamaño actual del dominio. Migrar a la estructura completa cuando el dominio crezca o se añadan más bounded contexts.
+
 ## CRITICAL: The Dependency Rule
 
 Dependencies point **inward only**. Outer layers depend on inner layers, never the reverse.

@@ -4,8 +4,14 @@ import { IJwtPayload } from './jwt-payload.interface';
 
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor() {
+    const secret = process.env.JWT_SECRET;
+    if (!secret) {
+      throw new Error(
+        'JWT_SECRET is required. Set it in your environment variables.',
+      );
+    }
     super({
-      secretOrKey: process.env.JWT_SECRET ?? 'secretKey',
+      secretOrKey: secret,
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
     });
   }

@@ -1,46 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { ThrottlerGuard } from '@nestjs/throttler';
 import { AppModule } from '../src/app.module';
-import { HttpExceptionFilter } from '../src/common/filters/http-exception.filter';
-
-async function configureApp(app: INestApplication): Promise<INestApplication> {
-  app.setGlobalPrefix('api/v1', {
-    exclude: ['health', 'health/ready', 'api/docs', 'api/docs-json', 'metrics'],
-  });
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
-    }),
-  );
-  app.useGlobalFilters(new HttpExceptionFilter());
-
-  const swaggerConfig = new DocumentBuilder()
-    .setTitle('Auth Service API')
-    .setDescription(
-      'Microservicio de autenticación - Login, registro, refresh y validación de tokens',
-    )
-    .setVersion('1.0')
-    .addBearerAuth(
-      {
-        type: 'http',
-        scheme: 'bearer',
-        bearerFormat: 'JWT',
-        description: 'Access token obtenido en POST /auth/login',
-        name: 'Authorization',
-        in: 'header',
-      },
-      'bearer',
-    )
-    .build();
-  const document = SwaggerModule.createDocument(app, swaggerConfig);
-  SwaggerModule.setup('api/docs', app, document);
-
-  return app;
-}
+import { configureApp } from './test-utils';
 
 describe('App (e2e)', () => {
   let app: INestApplication | undefined;
@@ -48,7 +11,10 @@ describe('App (e2e)', () => {
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
-    }).compile();
+    })
+      .overrideGuard(ThrottlerGuard)
+      .useValue({ canActivate: () => true })
+      .compile();
 
     app = moduleFixture.createNestApplication();
     await configureApp(app);

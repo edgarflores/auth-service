@@ -1,5 +1,6 @@
 import { resolve } from 'path';
 import { DataSource } from 'typeorm';
+import { getDbConnectionOptions } from './typeorm.config';
 
 const projectRoot = resolve(__dirname, '..', '..');
 
@@ -20,13 +21,7 @@ const migrations = isCompiled
   : [resolve(projectRoot, 'src', 'database', 'migrations', '**', '*.{ts,js}')];
 
 export default new DataSource({
-  type: 'postgres',
-  host: process.env.DB_HOST ?? 'localhost',
-  port: Number.parseInt(process.env.DB_PORT ?? '5432', 10),
-  username: process.env.DB_USERNAME ?? process.env.DB_USER ?? 'postgres',
-  password: process.env.DB_PASSWORD ?? 'postgres',
-  database: process.env.DB_NAME ?? 'auth_db',
-  synchronize: false,
+  ...getDbConnectionOptions(),
   logging: process.env.NODE_ENV !== 'production',
   entities,
   migrations,

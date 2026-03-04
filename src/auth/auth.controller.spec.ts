@@ -3,7 +3,6 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { AuthCredentialsDto } from './dto/auth-credentials.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
-import { LogoutDto } from './dto/logout.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
 
 describe('AuthController', () => {
@@ -87,17 +86,17 @@ describe('AuthController', () => {
   });
 
   describe('logout', () => {
-    it('debe llamar a authService.logout con userId', async () => {
-      const dto: LogoutDto = {
-        userId: '550e8400-e29b-41d4-a716-446655440000',
+    it('debe llamar a authService.logout con userId del JWT (req.user)', async () => {
+      const req = {
+        user: { userId: '550e8400-e29b-41d4-a716-446655440000' },
       };
       mockAuthService.logout.mockResolvedValue({
         message: 'Logged out successfully',
       });
 
-      const result = await controller.logout(dto);
+      const result = await controller.logout(req);
 
-      expect(authService.logout).toHaveBeenCalledWith(dto.userId);
+      expect(authService.logout).toHaveBeenCalledWith(req.user.userId);
       expect(result).toEqual({ message: 'Logged out successfully' });
     });
   });

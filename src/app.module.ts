@@ -9,11 +9,13 @@ import { HealthModule } from './health/health.module';
 import { User } from './auth/entities/user.entity';
 import { RefreshTokenEntity } from './auth/entities/refresh-tokens.entity';
 import { RoleEntity } from './auth/entities/roles.entity';
+// Preparadas para features futuros: verificación de email y reset de contraseña
 import { EmailVerificationTokenEntity } from './auth/entities/email-verification-tokens.entity';
 import { PasswordResetTokenEntity } from './auth/entities/password-reset-tokens.entity';
 import { UserRoleEntity } from './auth/entities/user-roles.entity';
 import { AppEntity } from './auth/entities/app.entity';
 import { RoleAppEntity } from './auth/entities/role-app.entity';
+import { getDbConnectionOptions } from './database/typeorm.config';
 
 @Module({
   imports: [
@@ -35,12 +37,7 @@ import { RoleAppEntity } from './auth/entities/role-app.entity';
       },
     ]),
     TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: process.env.DB_HOST ?? 'localhost',
-      port: Number.parseInt(process.env.DB_PORT ?? '5432', 10),
-      username: process.env.DB_USERNAME ?? process.env.DB_USER ?? 'postgres',
-      password: process.env.DB_PASSWORD ?? 'postgres',
-      database: process.env.DB_NAME ?? 'auth_db',
+      ...getDbConnectionOptions(),
       entities: [
         User,
         RefreshTokenEntity,

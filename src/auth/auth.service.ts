@@ -13,6 +13,10 @@ import { JwtService } from '@nestjs/jwt';
 import { RefreshTokenEntity } from './entities/refresh-tokens.entity';
 import { IJwtPayload } from './jwt-payload.interface';
 
+const ACCESS_TOKEN_TTL = process.env.JWT_ACCESS_TTL ?? '15m';
+const REFRESH_TOKEN_DAYS = 30;
+const BCRYPT_ROUNDS = 10;
+
 @Injectable()
 export class AuthService {
   logger = new Logger('AuthService');
@@ -87,15 +91,19 @@ export class AuthService {
       apps,
     };
 
-    const accessToken = this.jwtService.sign(payload, { expiresIn: '15m' });
+    const accessToken = this.jwtService.sign(payload, {
+      expiresIn: ACCESS_TOKEN_TTL,
+    });
 
     const refreshToken = crypto.randomUUID();
-    const refreshHash = await bcrypt.hash(refreshToken, 10);
+    const refreshHash = await bcrypt.hash(refreshToken, BCRYPT_ROUNDS);
 
     await this.refreshTokenRepository.save({
       userId: user.id,
       tokenHash: refreshHash,
-      expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30), // 30 days
+      expiresAt: new Date(
+        Date.now() + 1000 * 60 * 60 * 24 * REFRESH_TOKEN_DAYS,
+      ),
     });
 
     return {
@@ -106,14 +114,7 @@ export class AuthService {
 
   async register(authCredentialsDto: AuthCredentialsDto): Promise<void> {
     const { email, password } = authCredentialsDto;
-    this.logger.debug(email, password);
-
-    if (!email || !password)
-      throw new InternalServerErrorException(
-        'email and password can not be empty!',
-      );
-
-    const salt = await bcrypt.genSalt();
+    const salt = await bcrypt.genSalt(BCRYPT_ROUNDS);
 
     const passwordHashed = await bcrypt.hash(password, salt);
 

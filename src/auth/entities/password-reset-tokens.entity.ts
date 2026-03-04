@@ -8,6 +8,10 @@ import {
 } from 'typeorm';
 import { User } from './user.entity';
 
+/**
+ * Entidad para tokens de restablecimiento de contraseña.
+ * Registrada en TypeORM; la lógica de negocio se implementará en un feature futuro.
+ */
 @Entity('password_reset_tokens')
 export class PasswordResetTokenEntity {
   @PrimaryGeneratedColumn('uuid')

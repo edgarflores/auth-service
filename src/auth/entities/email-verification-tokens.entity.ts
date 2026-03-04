@@ -8,6 +8,10 @@ import {
 } from 'typeorm';
 import { User } from './user.entity';
 
+/**
+ * Entidad para tokens de verificación de email.
+ * Registrada en TypeORM; la lógica de negocio se implementará en un feature futuro.
+ */
 @Entity('email_verification_tokens')
 export class EmailVerificationTokenEntity {
   @PrimaryGeneratedColumn('uuid')

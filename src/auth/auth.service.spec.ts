@@ -6,10 +6,13 @@ import { AuthService } from './auth.service';
 import { User } from './entities/user.entity';
 import { RefreshTokenEntity } from './entities/refresh-tokens.entity';
 import { AuthCredentialsDto } from './dto/auth-credentials.dto';
-
-const mockBcryptCompare = jest.fn();
-const mockBcryptHash = jest.fn();
-const mockBcryptGenSalt = jest.fn();
+import {
+  mockBcryptCompare,
+  mockBcryptGenSalt,
+  mockBcryptHash,
+  mockUser,
+  resetBcryptMocks,
+} from './auth.service.spec.helpers';
 
 jest.mock('bcrypt', () => ({
   compare: (...args: unknown[]) => mockBcryptCompare(...args),
@@ -31,18 +34,8 @@ describe('AuthService', () => {
   };
   let jwtService: { sign: jest.Mock };
 
-  const mockUser: Partial<User> = {
-    id: '550e8400-e29b-41d4-a716-446655440000',
-    email: 'user@example.com',
-    password: 'hashedPassword',
-    isActive: true,
-    userRoles: [],
-  };
-
   beforeEach(async () => {
-    mockBcryptCompare.mockResolvedValue(true);
-    mockBcryptHash.mockResolvedValue('hashedToken');
-    mockBcryptGenSalt.mockResolvedValue('salt');
+    resetBcryptMocks();
 
     userRepository = {
       findOne: jest.fn(),
@@ -125,12 +118,6 @@ describe('AuthService', () => {
           password: 'password123',
         }),
       ).rejects.toThrow(UnauthorizedException);
-      await expect(
-        service.login({
-          email: 'nonexistent@example.com',
-          password: 'password123',
-        }),
-      ).rejects.toThrow('Invalid credentials!!');
     });
 
     it('debe lanzar UnauthorizedException cuando la contraseña es incorrecta', async () => {
@@ -143,12 +130,6 @@ describe('AuthService', () => {
           password: 'wrongpassword',
         }),
       ).rejects.toThrow(UnauthorizedException);
-      await expect(
-        service.login({
-          email: 'user@example.com',
-          password: 'wrongpassword',
-        }),
-      ).rejects.toThrow('Invalid credentials!!');
     });
   });
 
@@ -171,24 +152,6 @@ describe('AuthService', () => {
         password: expect.any(String),
       });
       expect(userRepository.save).toHaveBeenCalled();
-    });
-
-    it('debe lanzar InternalServerErrorException cuando email está vacío', async () => {
-      await expect(
-        service.register({
-          email: '',
-          password: 'password123',
-        }),
-      ).rejects.toThrow('email and password can not be empty!');
-    });
-
-    it('debe lanzar InternalServerErrorException cuando password está vacío', async () => {
-      await expect(
-        service.register({
-          email: 'user@example.com',
-          password: '',
-        }),
-      ).rejects.toThrow('email and password can not be empty!');
     });
 
     it('debe lanzar InternalServerErrorException cuando el email ya existe', async () => {

@@ -1,49 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ThrottlerGuard } from '@nestjs/throttler';
 import { AppModule } from '../src/app.module';
-import { HttpExceptionFilter } from '../src/common/filters/http-exception.filter';
+import { configureApp } from './test-utils';
 
 const BASE = '/api/v1/auth';
-
-async function configureApp(app: INestApplication): Promise<INestApplication> {
-  app.setGlobalPrefix('api/v1', {
-    exclude: ['health', 'health/ready', 'api/docs', 'api/docs-json', 'metrics'],
-  });
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
-    }),
-  );
-  app.useGlobalFilters(new HttpExceptionFilter());
-
-  const swaggerConfig = new DocumentBuilder()
-    .setTitle('Auth Service API')
-    .setDescription(
-      'Microservicio de autenticación - Login, registro, refresh y validación de tokens',
-    )
-    .setVersion('1.0')
-    .addBearerAuth(
-      {
-        type: 'http',
-        scheme: 'bearer',
-        bearerFormat: 'JWT',
-        description: 'Access token obtenido en POST /auth/login',
-        name: 'Authorization',
-        in: 'header',
-      },
-      'bearer',
-    )
-    .build();
-  const document = SwaggerModule.createDocument(app, swaggerConfig);
-  SwaggerModule.setup('api/docs', app, document);
-
-  return app;
-}
 
 describe('Auth (e2e)', () => {
   let app: INestApplication | undefined;
@@ -195,24 +157,18 @@ describe('Auth (e2e)', () => {
 
   describe('Logout', () => {
     let accessToken: string;
-    let userId: string;
 
     beforeAll(async () => {
       const res = await request(app!.getHttpServer())
         .post(`${BASE}/login`)
         .send({ email: testEmail, password: testPassword });
       accessToken = res.body.accessToken;
-      const validateRes = await request(app!.getHttpServer())
-        .get(`${BASE}/validate`)
-        .set('Authorization', `Bearer ${accessToken}`);
-      userId = validateRes.body.userId;
     });
 
     it('POST /logout con JWT válido debe retornar 200/201', () => {
       return request(app!.getHttpServer())
         .post(`${BASE}/logout`)
         .set('Authorization', `Bearer ${accessToken}`)
-        .send({ userId })
         .expect((res) => {
           expect([200, 201]).toContain(res.status);
           expect(res.body.message).toBeDefined();
@@ -222,7 +178,6 @@ describe('Auth (e2e)', () => {
     it('POST /logout sin JWT debe retornar 401', () => {
       return request(app!.getHttpServer())
         .post(`${BASE}/logout`)
-        .send({ userId })
         .expect(401);
     });
   });

@@ -4,7 +4,6 @@ import { ApiBearerAuth, ApiHeader, ApiOperation, ApiResponse, ApiTags } from '@n
 import { AuthService } from './auth.service';
 import { AuthCredentialsDto } from './dto/auth-credentials.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
-import { LogoutDto } from './dto/logout.dto';
 import { ValidateResponseDto } from './dto/validate-response.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
 
@@ -46,8 +45,8 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'Sesión cerrada' })
   @UseGuards(JwtAuthGuard)
   @Post('logout')
-  logout(@Body() dto: LogoutDto) {
-    return this.authService.logout(dto.userId);
+  logout(@Req() req: { user: { userId: string } }) {
+    return this.authService.logout(req.user.userId);
   }
 
   @ApiBearerAuth('bearer')

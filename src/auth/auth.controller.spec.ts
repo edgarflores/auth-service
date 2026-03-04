@@ -103,18 +103,28 @@ describe('AuthController', () => {
   });
 
   describe('validate', () => {
-    it('debe llamar a authService.validateToken con userId del request', async () => {
-      const req = { user: { userId: '550e8400-e29b-41d4-a716-446655440000' } };
+    it('debe llamar a authService.validateToken con req.user completo', async () => {
+      const req = {
+        user: {
+          userId: '550e8400-e29b-41d4-a716-446655440000',
+          email: 'user@example.com',
+          isActive: true,
+          roles: ['user'],
+          apps: ['ledgerflow'],
+        },
+      };
       const validateResult = {
         userId: req.user.userId,
-        email: 'user@example.com',
-        isActive: true,
+        email: req.user.email,
+        isActive: req.user.isActive,
+        roles: req.user.roles,
+        apps: req.user.apps,
       };
-      mockAuthService.validateToken.mockResolvedValue(validateResult);
+      mockAuthService.validateToken.mockReturnValue(validateResult);
 
       const result = await controller.validate(req);
 
-      expect(authService.validateToken).toHaveBeenCalledWith(req.user.userId);
+      expect(authService.validateToken).toHaveBeenCalledWith(req.user);
       expect(result).toEqual(validateResult);
     });
   });

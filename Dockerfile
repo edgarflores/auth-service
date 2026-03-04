@@ -23,9 +23,13 @@ RUN yarn install --frozen-lockfile --production && yarn cache clean
 # Copiar build desde etapa anterior
 COPY --from=builder /app/dist ./dist
 
+# Copiar entrypoint que ejecuta migraciones antes de iniciar la app
+COPY docker-entrypoint.sh ./
+RUN chmod +x docker-entrypoint.sh
+
 EXPOSE 3000
 
 ENV NODE_ENV=production
 ENV PORT=3000
 
-CMD ["node", "dist/main.js"]
+ENTRYPOINT ["./docker-entrypoint.sh"]

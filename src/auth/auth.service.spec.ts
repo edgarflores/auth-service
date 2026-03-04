@@ -36,6 +36,7 @@ describe('AuthService', () => {
     email: 'user@example.com',
     password: 'hashedPassword',
     isActive: true,
+    userRoles: [],
   };
 
   beforeEach(async () => {
@@ -92,11 +93,25 @@ describe('AuthService', () => {
         accessToken: 'mockAccessToken',
         refreshToken: expect.any(String),
       });
-      expect(userRepository.findOne).toHaveBeenCalledWith({
-        where: { email: 'user@example.com' },
-      });
+      expect(userRepository.findOne).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { email: 'user@example.com' },
+          relations: expect.arrayContaining([
+            'userRoles',
+            'userRoles.role',
+            'userRoles.role.roleApps',
+            'userRoles.role.roleApps.app',
+          ]),
+        }),
+      );
       expect(jwtService.sign).toHaveBeenCalledWith(
-        { sub: mockUser.id },
+        {
+          sub: mockUser.id,
+          email: mockUser.email,
+          isActive: mockUser.isActive,
+          roles: expect.any(Array),
+          apps: expect.any(Array),
+        },
         { expiresIn: '15m' },
       );
     });
@@ -201,6 +216,7 @@ describe('AuthService', () => {
       refreshTokenRepository.find.mockResolvedValue([validRefreshToken]);
       refreshTokenRepository.delete.mockResolvedValue({});
       refreshTokenRepository.save.mockResolvedValue({});
+      userRepository.findOne.mockResolvedValue(mockUser);
 
       const result = await service.refresh(
         mockUser.id!,
@@ -213,6 +229,10 @@ describe('AuthService', () => {
       });
       expect(refreshTokenRepository.delete).toHaveBeenCalledWith({
         id: validRefreshToken.id,
+      });
+      expect(userRepository.findOne).toHaveBeenCalledWith({
+        where: { id: mockUser.id },
+        relations: expect.any(Array),
       });
     });
 
@@ -261,32 +281,24 @@ describe('AuthService', () => {
   });
 
   describe('validateToken', () => {
-    it('debe retornar userId, email e isActive cuando el usuario existe', async () => {
-      userRepository.findOne.mockResolvedValue({
-        id: mockUser.id,
-        email: mockUser.email,
-        isActive: true,
-      });
-
-      const result = await service.validateToken(mockUser.id!);
-
-      expect(result).toEqual({
+    it('debe retornar userId, email, isActive, roles y apps del payload', () => {
+      const payload = {
         userId: mockUser.id,
         email: mockUser.email,
         isActive: true,
-      });
-      expect(userRepository.findOne).toHaveBeenCalledWith({
-        where: { id: mockUser.id },
-        select: ['id', 'email', 'isActive'],
-      });
-    });
+        roles: ['user'],
+        apps: ['ledgerflow'],
+      };
 
-    it('debe lanzar UnauthorizedException cuando el usuario no existe', async () => {
-      userRepository.findOne.mockResolvedValue(null);
+      const result = service.validateToken(payload);
 
-      await expect(
-        service.validateToken('nonexistent-user-id'),
-      ).rejects.toThrow('User not found');
+      expect(result).toEqual({
+        userId: payload.userId,
+        email: payload.email,
+        isActive: payload.isActive,
+        roles: payload.roles,
+        apps: payload.apps,
+      });
     });
   });
 });

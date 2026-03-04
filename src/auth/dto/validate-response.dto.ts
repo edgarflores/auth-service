@@ -18,4 +18,18 @@ export class ValidateResponseDto {
     description: 'Indica si el usuario está activo',
   })
   isActive: boolean;
+
+  @ApiProperty({
+    example: ['user'],
+    description: 'Roles asignados al usuario',
+    type: [String],
+  })
+  roles: string[];
+
+  @ApiProperty({
+    example: ['ledgerflow'],
+    description: 'Apps a las que el usuario tiene acceso',
+    type: [String],
+  })
+  apps: string[];
 }

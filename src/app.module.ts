@@ -12,6 +12,8 @@ import { RoleEntity } from './auth/entities/roles.entity';
 import { EmailVerificationTokenEntity } from './auth/entities/email-verification-tokens.entity';
 import { PasswordResetTokenEntity } from './auth/entities/password-reset-tokens.entity';
 import { UserRoleEntity } from './auth/entities/user-roles.entity';
+import { AppEntity } from './auth/entities/app.entity';
+import { RoleAppEntity } from './auth/entities/role-app.entity';
 
 @Module({
   imports: [
@@ -45,7 +47,9 @@ import { UserRoleEntity } from './auth/entities/user-roles.entity';
         RoleEntity,
         EmailVerificationTokenEntity,
         PasswordResetTokenEntity,
-        UserRoleEntity
+        UserRoleEntity,
+        AppEntity,
+        RoleAppEntity,
       ],
       synchronize: false,
     }),

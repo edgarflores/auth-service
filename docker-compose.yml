@@ -33,7 +33,7 @@ services:
       DB_NAME: ${DB_NAME:-auth_db}
       JWT_SECRET: ${JWT_SECRET:-superSecretKey}
     ports:
-      - "${PORT:-3000}:3000"
+      - "${DOCKER_PORT:-3000}:3000"
     healthcheck:
       test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000/health/ready"]
       interval: 10s

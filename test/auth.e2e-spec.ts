@@ -130,7 +130,7 @@ describe('Auth (e2e)', () => {
       accessToken = res.body.accessToken;
     });
 
-    it('GET /validate con token válido debe retornar 200 con userId, email, isActive', () => {
+    it('GET /validate con token válido debe retornar 200 con userId, email, isActive, roles, apps', () => {
       return request(app!.getHttpServer())
         .get(`${BASE}/validate`)
         .set('Authorization', `Bearer ${accessToken}`)
@@ -139,6 +139,8 @@ describe('Auth (e2e)', () => {
           expect(res.body.userId).toBeDefined();
           expect(res.body.email).toBeDefined();
           expect(res.body.isActive).toBeDefined();
+          expect(Array.isArray(res.body.roles)).toBe(true);
+          expect(Array.isArray(res.body.apps)).toBe(true);
         });
     });
 

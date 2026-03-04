@@ -3,24 +3,22 @@ import {
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
-  OneToMany,
 } from 'typeorm';
-import { RoleAppEntity } from './role-app.entity';
 
-@Entity('roles')
-export class RoleEntity {
+@Entity('apps')
+export class AppEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column({ unique: true })
-  name: string; // "admin", "user", etc.
+  code: string;
+
+  @Column()
+  name: string;
 
   @Column({ nullable: true })
   description?: string;
 
   @CreateDateColumn()
   createdAt: Date;
-
-  @OneToMany(() => RoleAppEntity, (ra) => ra.role)
-  roleApps: RoleAppEntity[];
 }

@@ -56,13 +56,21 @@ El servicio estará disponible en `http://localhost:3005`.
 
 ```bash
 # Levantar todo (PostgreSQL + auth-service)
+# Las migraciones se ejecutan automáticamente al iniciar el contenedor
 docker compose up -d
 
 # Ver logs
 docker compose logs -f auth-service
 ```
 
-En Docker el puerto por defecto es `3000`. Asegúrate de ejecutar migraciones antes si la base está vacía.
+En Docker el puerto por defecto es `3000`. Las migraciones se ejecutan automáticamente al iniciar `auth-service`.
+
+**Si las migraciones desde el host fallan** (ej. problemas de conexión a localhost:5432), puedes ejecutarlas desde dentro del contenedor:
+
+```bash
+# Ejecutar migraciones dentro del contenedor (conecta a postgres via red Docker)
+yarn migration:run:docker
+```
 
 ### Producción
 
@@ -131,9 +139,33 @@ Authorization: Bearer <accessToken>
 {
   "userId": "550e8400-e29b-41d4-a716-446655440000",
   "email": "user@example.com",
-  "isActive": true
+  "isActive": true,
+  "roles": ["user"],
+  "apps": ["ledgerflow"]
 }
 ```
+
+### Payload del JWT (accessToken)
+
+El accessToken incluye la siguiente información firmada:
+
+```json
+{
+  "sub": "550e8400-e29b-41d4-a716-446655440000",
+  "email": "user@example.com",
+  "isActive": true,
+  "roles": ["user"],
+  "apps": ["ledgerflow"],
+  "iat": 1708100000,
+  "exp": 1708100900
+}
+```
+
+- `sub`: ID del usuario
+- `email`: Email del usuario
+- `isActive`: Indica si el usuario está activo
+- `roles`: Roles asignados al usuario
+- `apps`: Apps a las que tiene acceso (derivadas de los roles)
 
 ---
 
@@ -156,7 +188,8 @@ Authorization: Bearer <accessToken>
 │  microservicio) │ ───────────────────►  │ Valida JWT   │
 └─────────────────┘ ◄───────────────────  │ Retorna user │
                     { userId, email,       └──────────────┘
-                      isActive }
+                      isActive, roles,
+                      apps }
 ```
 
 ### 1. Login desde frontend o app
@@ -195,7 +228,7 @@ async function validateUserToken(authHeader: string) {
     throw new UnauthorizedException('Token inválido o expirado');
   }
 
-  return response.json(); // { userId, email, isActive }
+  return response.json(); // { userId, email, isActive, roles, apps }
 }
 ```
 
@@ -206,7 +239,7 @@ const { data } = await axios.get('http://auth-service:3005/api/v1/auth/validate'
     Authorization: req.headers.authorization,
   },
 });
-// data = { userId, email, isActive }
+// data = { userId, email, isActive, roles, apps }
 ```
 
 ### 3. Middleware de validación (ejemplo NestJS)
@@ -232,7 +265,7 @@ export class AuthValidationGuard implements CanActivate {
       }),
     );
 
-    request.user = data; // { userId, email, isActive }
+    request.user = data; // { userId, email, isActive, roles, apps }
     return true;
   }
 }
@@ -301,7 +334,8 @@ yarn test:cov
 | `yarn start:dev` | Iniciar en modo watch |
 | `yarn start:prod` | Iniciar en producción |
 | `yarn build` | Compilar |
-| `yarn migration:run` | Ejecutar migraciones |
+| `yarn migration:run` | Ejecutar migraciones (desde host, requiere PostgreSQL accesible en localhost) |
+| `yarn migration:run:docker` | Ejecutar migraciones dentro del contenedor Docker |
 | `yarn migration:revert` | Revertir última migración |
 | `yarn seed` | Ejecutar seeders |
 | `yarn test` | Tests unitarios |

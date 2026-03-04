@@ -2,31 +2,21 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
   Unique,
   UpdateDateColumn,
 } from 'typeorm';
+import { UserRoleEntity } from './user-roles.entity';
 
 @Entity('users')
-@Unique(['username', 'email'])
+@Unique(['email'])
 export class User {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ nullable: true })
-  username: string;
-
-  @Column({ nullable: true })
-  firstName: string;
-
-  @Column({ nullable: true })
-  lastName: string;
-
-  @Column({ nullable: true })
+  @Column()
   email: string;
-
-  @Column({ nullable: true })
-  phone: string;
 
   @Column()
   password: string;
@@ -39,4 +29,7 @@ export class User {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @OneToMany(() => UserRoleEntity, (ur) => ur.user)
+  userRoles: UserRoleEntity[];
 }

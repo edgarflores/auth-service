@@ -63,9 +63,9 @@ export class AuthController {
 **Request (Header requerido):**
 - \`Authorization\`: Bearer + access token JWT
 
-**Flujo:** El JWT se valida y se extrae el \`sub\` (userId) del payload. Luego se consulta el usuario en BD y se retornan sus datos.
+**Flujo:** El JWT se valida y se extrae del payload: userId, email, isActive, roles y apps. No se consulta BD.
 
-**req.user** (después de validar): \`{ userId: string }\`
+**req.user** (después de validar): \`{ userId, email, isActive, roles, apps }\`
     `,
   })
   @ApiResponse({
@@ -77,6 +77,8 @@ export class AuthController {
         userId: '550e8400-e29b-41d4-a716-446655440000',
         email: 'user@example.com',
         isActive: true,
+        roles: ['user'],
+        apps: ['ledgerflow'],
       },
     },
   })
@@ -93,7 +95,7 @@ export class AuthController {
   })
   @UseGuards(JwtAuthGuard)
   @Get('validate')
-  validate(@Req() req: { user: { userId: string } }) {
-    return this.authService.validateToken(req.user.userId);
+  validate(@Req() req: { user: { userId: string; email: string; isActive: boolean; roles: string[]; apps: string[] } }) {
+    return this.authService.validateToken(req.user);
   }
 }

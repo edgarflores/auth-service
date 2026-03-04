@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import { DataSource } from 'typeorm';
 import { seedRoles } from './seeders/roles.seeder';
+import { seedApps } from './seeders/apps.seeder';
 
 const dataSource = new DataSource({
   type: 'postgres',
@@ -19,6 +20,7 @@ async function runSeed(): Promise<void> {
     console.log('Conectado a la base de datos. Ejecutando seeders...\n');
 
     await seedRoles(dataSource);
+    await seedApps(dataSource);
 
     console.log('\n✓ Seed completado correctamente');
   } catch (error) {

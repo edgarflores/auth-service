@@ -9,6 +9,8 @@ import { JwtStrategy } from './jwt-strategy';
 import { RefreshTokenEntity } from './entities/refresh-tokens.entity';
 import { UserRoleEntity } from './entities/user-roles.entity';
 import { RoleEntity } from './entities/roles.entity';
+import { AppEntity } from './entities/app.entity';
+import { RoleAppEntity } from './entities/role-app.entity';
 
 @Module({
   imports: [
@@ -17,6 +19,8 @@ import { RoleEntity } from './entities/roles.entity';
       RefreshTokenEntity,
       UserRoleEntity,
       RoleEntity,
+      AppEntity,
+      RoleAppEntity,
     ]),
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.register({

@@ -1,9 +1,9 @@
 #!/bin/sh
 set -e
 
-# Ejecutar migraciones antes de iniciar la app (usa variables de docker-compose: DB_HOST=postgres, etc.)
-echo "Ejecutando migraciones..."
-node ./node_modules/typeorm/cli.js migration:run -d ./dist/database/data-source.js || {
+# Ejecutar migraciones antes de iniciar la app (usa variables de docker-compose: DATABASE_URL, DB_*, etc.)
+echo "Ejecutando migraciones Prisma..."
+npx prisma migrate deploy || {
   echo "ADVERTENCIA: Las migraciones fallaron. Verifica la conexión a PostgreSQL."
   exit 1
 }

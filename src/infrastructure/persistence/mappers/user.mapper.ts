@@ -1,12 +1,28 @@
+import { Prisma } from '@prisma/client';
 import { User } from '../../../domain/auth/user.entity';
 import { PasswordHash } from '../../../domain/auth/value-objects/password-hash.vo';
-import { UserOrmEntity } from '../typeorm/entities/user-orm.entity';
 
-export function toDomain(orm: UserOrmEntity): User {
+export const userWithRolesInclude = {
+  userRoles: {
+    include: {
+      role: {
+        include: {
+          roleApps: { include: { app: true } },
+        },
+      },
+    },
+  },
+} as const satisfies Prisma.UserInclude;
+
+export type UserWithRoles = Prisma.UserGetPayload<{
+  include: typeof userWithRolesInclude;
+}>;
+
+export function toDomain(db: UserWithRoles): User {
   const roles: string[] = [];
   const apps: string[] = [];
 
-  for (const ur of orm.userRoles ?? []) {
+  for (const ur of db.userRoles ?? []) {
     if (ur.role) {
       roles.push(ur.role.name);
       for (const ra of ur.role.roleApps ?? []) {
@@ -16,10 +32,10 @@ export function toDomain(orm: UserOrmEntity): User {
   }
 
   return User.create({
-    id: orm.id,
-    email: orm.email,
-    passwordHash: PasswordHash.create(orm.password),
-    isActive: orm.isActive,
+    id: db.id,
+    email: db.email,
+    passwordHash: PasswordHash.create(db.password),
+    isActive: db.isActive,
     roles,
     apps,
   });

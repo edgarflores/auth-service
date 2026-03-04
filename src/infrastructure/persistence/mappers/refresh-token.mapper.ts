@@ -1,11 +1,11 @@
 import { RefreshToken } from '../../../domain/auth/refresh-token.entity';
-import { RefreshTokenOrmEntity } from '../typeorm/entities/refresh-token-orm.entity';
+import type { RefreshToken as PrismaRefreshToken } from '@prisma/client';
 
-export function toDomain(orm: RefreshTokenOrmEntity): RefreshToken {
+export function toDomain(db: PrismaRefreshToken): RefreshToken {
   return RefreshToken.create({
-    id: orm.id,
-    userId: orm.userId,
-    tokenHash: orm.tokenHash,
-    expiresAt: orm.expiresAt,
+    id: db.id,
+    userId: db.userId,
+    tokenHash: db.tokenHash,
+    expiresAt: db.expiresAt,
   });
 }

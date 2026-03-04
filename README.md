@@ -21,6 +21,7 @@ cp .env.example .env
 | Variable | Descripción | Default |
 |----------|-------------|---------|
 | `PORT` | Puerto del servicio (3005 local, 3000 en Docker) | `3005` |
+| `DATABASE_URL` | URL de conexión PostgreSQL (Prisma). Si no se define, se construye desde `DB_*` | - |
 | `DB_HOST` | Host de PostgreSQL | `localhost` |
 | `DB_PORT` | Puerto de PostgreSQL | `5432` |
 | `DB_USER` / `DB_USERNAME` | Usuario de la base de datos | `postgres` |
@@ -71,6 +72,8 @@ En Docker el puerto por defecto es `3000`. Las migraciones se ejecutan automáti
 # Ejecutar migraciones dentro del contenedor (conecta a postgres via red Docker)
 yarn migration:run:docker
 ```
+
+**Base de datos existente (migración desde TypeORM):** Si ya tienes tablas creadas por migraciones anteriores, marca la migración inicial como aplicada: `npx prisma migrate resolve --applied 20240304000000_init`
 
 ### Producción
 
@@ -334,9 +337,10 @@ yarn test:cov
 | `yarn start:dev` | Iniciar en modo watch |
 | `yarn start:prod` | Iniciar en producción |
 | `yarn build` | Compilar |
-| `yarn migration:run` | Ejecutar migraciones (desde host, requiere PostgreSQL accesible en localhost) |
-| `yarn migration:run:docker` | Ejecutar migraciones dentro del contenedor Docker |
-| `yarn migration:revert` | Revertir última migración |
+| `yarn prisma:generate` | Generar cliente Prisma |
+| `yarn migration:run` | Ejecutar migraciones Prisma (`prisma migrate deploy`) |
+| `yarn prisma:migrate:dev` | Crear/aplicar migraciones en desarrollo |
+| `yarn prisma:studio` | Abrir Prisma Studio (UI para la base de datos) |
 | `yarn seed` | Ejecutar seeders |
 | `yarn test` | Tests unitarios |
 | `yarn test:e2e` | Tests E2E |

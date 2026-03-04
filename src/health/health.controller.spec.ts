@@ -1,20 +1,18 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import {
-  HealthCheckService,
-  TypeOrmHealthIndicator,
-} from '@nestjs/terminus';
+import { HealthCheckService } from '@nestjs/terminus';
 import { HealthController } from './health.controller';
+import { PrismaHealthIndicator } from './prisma-health.indicator';
 
 describe('HealthController', () => {
   let controller: HealthController;
   let healthCheckService: HealthCheckService;
 
   const mockHealthCheck = jest.fn();
-  const mockPingCheck = jest.fn();
+  const mockIsHealthy = jest.fn();
 
   beforeEach(async () => {
     mockHealthCheck.mockResolvedValue({ status: 'ok' });
-    mockPingCheck.mockResolvedValue({ database: { status: 'up' } });
+    mockIsHealthy.mockResolvedValue({ database: { status: 'up' } });
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [HealthController],
@@ -24,8 +22,8 @@ describe('HealthController', () => {
           useValue: { check: mockHealthCheck },
         },
         {
-          provide: TypeOrmHealthIndicator,
-          useValue: { pingCheck: mockPingCheck },
+          provide: PrismaHealthIndicator,
+          useValue: { isHealthy: mockIsHealthy },
         },
       ],
     }).compile();

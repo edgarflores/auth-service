@@ -20,6 +20,11 @@ WORKDIR /app
 COPY package.json yarn.lock* package-lock.json* ./
 RUN yarn install --frozen-lockfile --production && yarn cache clean
 
+# Copiar schema Prisma y generar cliente (requerido para @prisma/client)
+COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/prisma.config.ts ./
+RUN npx prisma generate
+
 # Copiar build desde etapa anterior
 COPY --from=builder /app/dist ./dist
 

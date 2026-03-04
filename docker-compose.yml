@@ -26,6 +26,7 @@ services:
         condition: service_healthy
     environment:
       PORT: ${PORT:-3000}
+      DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@postgres:5432/${DB_NAME:-auth_db}
       DB_HOST: postgres
       DB_PORT: 5432
       DB_USERNAME: ${DB_USER:-postgres}

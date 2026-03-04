@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthController } from './auth.controller';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
@@ -8,8 +7,8 @@ import { USER_REPOSITORY } from '../domain/auth/ports/user.repository.port';
 import { REFRESH_TOKEN_REPOSITORY } from '../domain/auth/ports/refresh-token.repository.port';
 import { PASSWORD_HASHER } from '../domain/auth/ports/password-hasher.port';
 import { TOKEN_SERVICE } from '../domain/auth/ports/token.service.port';
-import { TypeOrmUserRepository } from '../infrastructure/persistence/typeorm/user.repository.adapter';
-import { TypeOrmRefreshTokenRepository } from '../infrastructure/persistence/typeorm/refresh-token.repository.adapter';
+import { PrismaUserRepository } from '../infrastructure/persistence/prisma/user.repository.adapter';
+import { PrismaRefreshTokenRepository } from '../infrastructure/persistence/prisma/refresh-token.repository.adapter';
 import { BcryptPasswordHasher } from '../infrastructure/auth/bcrypt-password-hasher.adapter';
 import { JwtTokenServiceAdapter } from '../infrastructure/auth/jwt-token.service.adapter';
 import { LoginHandler } from '../application/auth/login/login.handler';
@@ -17,25 +16,9 @@ import { RegisterHandler } from '../application/auth/register/register.handler';
 import { RefreshHandler } from '../application/auth/refresh/refresh.handler';
 import { LogoutHandler } from '../application/auth/logout/logout.handler';
 import { ValidateTokenHandler } from '../application/auth/validate-token/validate-token.handler';
-import {
-  UserOrmEntity,
-  RefreshTokenOrmEntity,
-  UserRoleOrmEntity,
-  RoleOrmEntity,
-  AppOrmEntity,
-  RoleAppOrmEntity,
-} from '../infrastructure/persistence/typeorm/entities';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([
-      UserOrmEntity,
-      RefreshTokenOrmEntity,
-      UserRoleOrmEntity,
-      RoleOrmEntity,
-      AppOrmEntity,
-      RoleAppOrmEntity,
-    ]),
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       useFactory: () => {
@@ -53,8 +36,8 @@ import {
     }),
   ],
   providers: [
-    { provide: USER_REPOSITORY, useClass: TypeOrmUserRepository },
-    { provide: REFRESH_TOKEN_REPOSITORY, useClass: TypeOrmRefreshTokenRepository },
+    { provide: USER_REPOSITORY, useClass: PrismaUserRepository },
+    { provide: REFRESH_TOKEN_REPOSITORY, useClass: PrismaRefreshTokenRepository },
     { provide: PASSWORD_HASHER, useClass: BcryptPasswordHasher },
     { provide: TOKEN_SERVICE, useClass: JwtTokenServiceAdapter },
     LoginHandler,

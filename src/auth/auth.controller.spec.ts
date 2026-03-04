@@ -1,30 +1,31 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthController } from './auth.controller';
-import { AuthService } from './auth.service';
 import { AuthCredentialsDto } from './dto/auth-credentials.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
+import { LoginHandler } from '../application/auth/login/login.handler';
+import { RegisterHandler } from '../application/auth/register/register.handler';
+import { RefreshHandler } from '../application/auth/refresh/refresh.handler';
+import { LogoutHandler } from '../application/auth/logout/logout.handler';
+import { ValidateTokenHandler } from '../application/auth/validate-token/validate-token.handler';
 
 describe('AuthController', () => {
   let controller: AuthController;
-  let authService: AuthService;
-
-  const mockAuthService = {
-    login: jest.fn(),
-    register: jest.fn(),
-    refresh: jest.fn(),
-    logout: jest.fn(),
-    validateToken: jest.fn(),
-  };
+  const mockLoginHandler = { execute: jest.fn() };
+  const mockRegisterHandler = { execute: jest.fn() };
+  const mockRefreshHandler = { execute: jest.fn() };
+  const mockLogoutHandler = { execute: jest.fn() };
+  const mockValidateTokenHandler = { execute: jest.fn() };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AuthController],
       providers: [
-        {
-          provide: AuthService,
-          useValue: mockAuthService,
-        },
+        { provide: LoginHandler, useValue: mockLoginHandler },
+        { provide: RegisterHandler, useValue: mockRegisterHandler },
+        { provide: RefreshHandler, useValue: mockRefreshHandler },
+        { provide: LogoutHandler, useValue: mockLogoutHandler },
+        { provide: ValidateTokenHandler, useValue: mockValidateTokenHandler },
       ],
     })
       .overrideGuard(JwtAuthGuard)
@@ -32,77 +33,90 @@ describe('AuthController', () => {
       .compile();
 
     controller = module.get<AuthController>(AuthController);
-    authService = module.get<AuthService>(AuthService);
     jest.clearAllMocks();
   });
 
   describe('login', () => {
-    it('debe llamar a authService.login y retornar tokens', async () => {
+    it('debe llamar a loginHandler.execute y retornar tokens', async () => {
       const dto: AuthCredentialsDto = {
         email: 'user@example.com',
         password: 'password123',
       };
       const tokens = { accessToken: 'token', refreshToken: 'refresh' };
-      mockAuthService.login.mockResolvedValue(tokens);
+      mockLoginHandler.execute.mockResolvedValue(tokens);
 
       const result = await controller.login(dto);
 
-      expect(authService.login).toHaveBeenCalledWith(dto);
+      expect(mockLoginHandler.execute).toHaveBeenCalledWith(
+        expect.objectContaining({
+          email: 'user@example.com',
+          password: 'password123',
+        }),
+      );
       expect(result).toEqual(tokens);
     });
   });
 
   describe('register', () => {
-    it('debe llamar a authService.register', async () => {
+    it('debe llamar a registerHandler.execute', async () => {
       const dto: AuthCredentialsDto = {
         email: 'newuser@example.com',
         password: 'password123',
       };
-      mockAuthService.register.mockResolvedValue(undefined);
+      mockRegisterHandler.execute.mockResolvedValue(undefined);
 
       await controller.register(dto);
 
-      expect(authService.register).toHaveBeenCalledWith(dto);
+      expect(mockRegisterHandler.execute).toHaveBeenCalledWith(
+        expect.objectContaining({
+          email: 'newuser@example.com',
+          password: 'password123',
+        }),
+      );
     });
   });
 
   describe('refresh', () => {
-    it('debe llamar a authService.refresh con userId y refreshToken', async () => {
+    it('debe llamar a refreshHandler.execute con userId y refreshToken', async () => {
       const dto: RefreshTokenDto = {
         userId: '550e8400-e29b-41d4-a716-446655440000',
         refreshToken: 'refresh-token-uuid',
       };
       const tokens = { accessToken: 'newToken', refreshToken: 'newRefresh' };
-      mockAuthService.refresh.mockResolvedValue(tokens);
+      mockRefreshHandler.execute.mockResolvedValue(tokens);
 
       const result = await controller.refresh(dto);
 
-      expect(authService.refresh).toHaveBeenCalledWith(
-        dto.userId,
-        dto.refreshToken,
+      expect(mockRefreshHandler.execute).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: dto.userId,
+          refreshToken: dto.refreshToken,
+        }),
       );
       expect(result).toEqual(tokens);
     });
   });
 
   describe('logout', () => {
-    it('debe llamar a authService.logout con userId del JWT (req.user)', async () => {
+    it('debe llamar a logoutHandler.execute con userId del JWT (req.user)', async () => {
       const req = {
         user: { userId: '550e8400-e29b-41d4-a716-446655440000' },
       };
-      mockAuthService.logout.mockResolvedValue({
+      mockLogoutHandler.execute.mockResolvedValue({
         message: 'Logged out successfully',
       });
 
       const result = await controller.logout(req);
 
-      expect(authService.logout).toHaveBeenCalledWith(req.user.userId);
+      expect(mockLogoutHandler.execute).toHaveBeenCalledWith(
+        expect.objectContaining({ userId: req.user.userId }),
+      );
       expect(result).toEqual({ message: 'Logged out successfully' });
     });
   });
 
   describe('validate', () => {
-    it('debe llamar a authService.validateToken con req.user completo', async () => {
+    it('debe llamar a validateTokenHandler.execute con req.user completo', async () => {
       const req = {
         user: {
           userId: '550e8400-e29b-41d4-a716-446655440000',
@@ -119,11 +133,19 @@ describe('AuthController', () => {
         roles: req.user.roles,
         apps: req.user.apps,
       };
-      mockAuthService.validateToken.mockReturnValue(validateResult);
+      mockValidateTokenHandler.execute.mockResolvedValue(validateResult);
 
       const result = await controller.validate(req);
 
-      expect(authService.validateToken).toHaveBeenCalledWith(req.user);
+      expect(mockValidateTokenHandler.execute).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: req.user.userId,
+          email: req.user.email,
+          isActive: req.user.isActive,
+          roles: req.user.roles,
+          apps: req.user.apps,
+        }),
+      );
       expect(result).toEqual(validateResult);
     });
   });

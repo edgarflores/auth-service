@@ -1,21 +1,20 @@
 import { Module } from '@nestjs/common';
-import { APP_GUARD } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { LoggerModule } from 'nestjs-pino';
 import { PrometheusModule } from '@willsoto/nestjs-prometheus';
 import { AuthModule } from './auth/auth.module';
 import { HealthModule } from './health/health.module';
-import { User } from './auth/entities/user.entity';
-import { RefreshTokenEntity } from './auth/entities/refresh-tokens.entity';
-import { RoleEntity } from './auth/entities/roles.entity';
-// Preparadas para features futuros: verificación de email y reset de contraseña
-import { EmailVerificationTokenEntity } from './auth/entities/email-verification-tokens.entity';
-import { PasswordResetTokenEntity } from './auth/entities/password-reset-tokens.entity';
-import { UserRoleEntity } from './auth/entities/user-roles.entity';
-import { AppEntity } from './auth/entities/app.entity';
-import { RoleAppEntity } from './auth/entities/role-app.entity';
 import { getDbConnectionOptions } from './database/typeorm.config';
+import {
+  UserOrmEntity,
+  RefreshTokenOrmEntity,
+  RoleOrmEntity,
+  UserRoleOrmEntity,
+  AppOrmEntity,
+  RoleAppOrmEntity,
+} from './infrastructure/persistence/typeorm/entities';
 
 @Module({
   imports: [
@@ -39,14 +38,12 @@ import { getDbConnectionOptions } from './database/typeorm.config';
     TypeOrmModule.forRoot({
       ...getDbConnectionOptions(),
       entities: [
-        User,
-        RefreshTokenEntity,
-        RoleEntity,
-        EmailVerificationTokenEntity,
-        PasswordResetTokenEntity,
-        UserRoleEntity,
-        AppEntity,
-        RoleAppEntity,
+        UserOrmEntity,
+        RefreshTokenOrmEntity,
+        RoleOrmEntity,
+        UserRoleOrmEntity,
+        AppOrmEntity,
+        RoleAppOrmEntity,
       ],
       synchronize: false,
     }),

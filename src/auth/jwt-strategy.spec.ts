@@ -1,5 +1,5 @@
 import { JwtStrategy } from './jwt-strategy';
-import { IJwtPayload } from './jwt-payload.interface';
+import type { TokenPayload } from '../domain/auth/ports/token.service.port';
 
 describe('JwtStrategy', () => {
   const originalEnv = process.env;
@@ -34,7 +34,7 @@ describe('JwtStrategy', () => {
   describe('validate', () => {
     it('debe mapear payload a userId, email, isActive, roles y apps', async () => {
       const strategy = new JwtStrategy();
-      const payload: IJwtPayload = {
+      const payload: TokenPayload = {
         sub: 'user-id-123',
         email: 'user@example.com',
         isActive: true,
@@ -61,7 +61,7 @@ describe('JwtStrategy', () => {
         isActive: true,
         roles: undefined,
         apps: undefined,
-      } as IJwtPayload;
+      } as TokenPayload;
 
       const result = await strategy.validate(payload);
 

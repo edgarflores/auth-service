@@ -5,26 +5,37 @@ import {
   HttpException,
   HttpStatus,
   Logger,
+  UnauthorizedException,
+  ConflictException,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
+import {
+  InvalidCredentialsError,
+  UserNotFoundError,
+  EmailAlreadyExistsError,
+  RefreshTokenInvalidError,
+} from '../../domain/auth/errors/auth-domain.errors';
 
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
   private readonly logger = new Logger(HttpExceptionFilter.name);
 
   catch(exception: unknown, host: ArgumentsHost) {
+    const domainError = this.mapDomainErrorToHttp(exception);
+    const resolved = domainError ?? exception;
+
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
 
     const status =
-      exception instanceof HttpException
-        ? exception.getStatus()
+      resolved instanceof HttpException
+        ? resolved.getStatus()
         : HttpStatus.INTERNAL_SERVER_ERROR;
 
     const message =
-      exception instanceof HttpException
-        ? exception.getResponse()
+      resolved instanceof HttpException
+        ? resolved.getResponse()
         : 'Internal server error';
 
     const errorResponse =
@@ -51,4 +62,23 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
     response.status(status).json(body);
   }
+
+  private mapDomainErrorToHttp(exception: unknown): HttpException | null {
+    if (exception instanceof InvalidCredentialsError) {
+      return new UnauthorizedException('Invalid credentials');
+    }
+    if (exception instanceof UserNotFoundError) {
+      return new UnauthorizedException('User not found');
+    }
+    if (exception instanceof EmailAlreadyExistsError) {
+      return new ConflictException(
+        'An account with this email already exists',
+      );
+    }
+    if (exception instanceof RefreshTokenInvalidError) {
+      return new UnauthorizedException('Refresh token invalid or expired');
+    }
+    return null;
+  }
 }
+

@@ -1,16 +1,31 @@
 import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import { ApiBearerAuth, ApiHeader, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { AuthService } from './auth.service';
 import { AuthCredentialsDto } from './dto/auth-credentials.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { ValidateResponseDto } from './dto/validate-response.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
+import { LoginHandler } from '../application/auth/login/login.handler';
+import { LoginCommand } from '../application/auth/login/login.command';
+import { RegisterHandler } from '../application/auth/register/register.handler';
+import { RegisterCommand } from '../application/auth/register/register.command';
+import { RefreshHandler } from '../application/auth/refresh/refresh.handler';
+import { RefreshCommand } from '../application/auth/refresh/refresh.command';
+import { LogoutHandler } from '../application/auth/logout/logout.handler';
+import { LogoutCommand } from '../application/auth/logout/logout.command';
+import { ValidateTokenHandler } from '../application/auth/validate-token/validate-token.handler';
+import { ValidateTokenCommand } from '../application/auth/validate-token/validate-token.command';
 
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly loginHandler: LoginHandler,
+    private readonly registerHandler: RegisterHandler,
+    private readonly refreshHandler: RefreshHandler,
+    private readonly logoutHandler: LogoutHandler,
+    private readonly validateTokenHandler: ValidateTokenHandler,
+  ) {}
 
   @ApiOperation({ summary: 'Iniciar sesión' })
   @ApiResponse({ status: 200, description: 'Tokens generados correctamente' })
@@ -20,7 +35,8 @@ export class AuthController {
   async login(
     @Body() authCredentialsDto: AuthCredentialsDto,
   ): Promise<{ accessToken: string; refreshToken: string }> {
-    return this.authService.login(authCredentialsDto);
+    const command = new LoginCommand(authCredentialsDto.email, authCredentialsDto.password);
+    return this.loginHandler.execute(command);
   }
 
   @ApiOperation({ summary: 'Registrar nuevo usuario' })
@@ -29,24 +45,27 @@ export class AuthController {
   @Throttle({ default: { limit: 3, ttl: 60000 } })
   @Post('/register')
   register(@Body() authCredentialsDto: AuthCredentialsDto): Promise<void> {
-    return this.authService.register(authCredentialsDto);
+    const command = new RegisterCommand(authCredentialsDto.email, authCredentialsDto.password);
+    return this.registerHandler.execute(command);
   }
 
   @ApiOperation({ summary: 'Renovar tokens (sin JWT requerido)' })
   @ApiResponse({ status: 200, description: 'Nuevos tokens generados' })
   @ApiResponse({ status: 401, description: 'Refresh token inválido o expirado' })
-  @Post('refresh')
+  @Post('/refresh')
   refresh(@Body() dto: RefreshTokenDto) {
-    return this.authService.refresh(dto.userId, dto.refreshToken);
+    const command = new RefreshCommand(dto.userId, dto.refreshToken);
+    return this.refreshHandler.execute(command);
   }
 
   @ApiBearerAuth('bearer')
   @ApiOperation({ summary: 'Cerrar sesión' })
   @ApiResponse({ status: 200, description: 'Sesión cerrada' })
   @UseGuards(JwtAuthGuard)
-  @Post('logout')
+  @Post('/logout')
   logout(@Req() req: { user: { userId: string } }) {
-    return this.authService.logout(req.user.userId);
+    const command = new LogoutCommand(req.user.userId);
+    return this.logoutHandler.execute(command);
   }
 
   @ApiBearerAuth('bearer')
@@ -93,8 +112,15 @@ export class AuthController {
     },
   })
   @UseGuards(JwtAuthGuard)
-  @Get('validate')
+  @Get('/validate')
   validate(@Req() req: { user: { userId: string; email: string; isActive: boolean; roles: string[]; apps: string[] } }) {
-    return this.authService.validateToken(req.user);
+    const command = new ValidateTokenCommand(
+      req.user.userId,
+      req.user.email,
+      req.user.isActive,
+      req.user.roles,
+      req.user.apps,
+    );
+    return this.validateTokenHandler.execute(command);
   }
 }

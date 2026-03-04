@@ -7,11 +7,11 @@ import {
   Unique,
   UpdateDateColumn,
 } from 'typeorm';
-import { UserRoleEntity } from './user-roles.entity';
+import { UserRoleOrmEntity } from './user-roles-orm.entity';
 
 @Entity('users')
 @Unique(['email'])
-export class User {
+export class UserOrmEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
@@ -30,6 +30,6 @@ export class User {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @OneToMany(() => UserRoleEntity, (ur) => ur.user)
-  userRoles: UserRoleEntity[];
+  @OneToMany(() => UserRoleOrmEntity, (ur) => ur.user)
+  userRoles: UserRoleOrmEntity[];
 }

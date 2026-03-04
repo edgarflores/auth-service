@@ -6,23 +6,19 @@ import {
   CreateDateColumn,
   JoinColumn,
 } from 'typeorm';
-import { User } from './user.entity';
+import { UserOrmEntity } from './user-orm.entity';
 
-/**
- * Entidad para tokens de restablecimiento de contraseña.
- * Registrada en TypeORM; la lógica de negocio se implementará en un feature futuro.
- */
-@Entity('password_reset_tokens')
-export class PasswordResetTokenEntity {
+@Entity('email_verification_tokens')
+export class EmailVerificationTokenOrmEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column('uuid')
   userId: string;
 
-  @ManyToOne(() => User, { onDelete: 'CASCADE' })
+  @ManyToOne(() => UserOrmEntity, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'userId' })
-  user: User;
+  user: UserOrmEntity;
 
   @Column({ unique: true })
   tokenHash: string;
@@ -31,7 +27,7 @@ export class PasswordResetTokenEntity {
   expiresAt: Date;
 
   @Column({ nullable: true })
-  usedAt?: Date;
+  verifiedAt?: Date;
 
   @CreateDateColumn()
   createdAt: Date;

@@ -1,5 +1,6 @@
 import { ArgumentsHost, HttpException, HttpStatus } from '@nestjs/common';
 import { HttpExceptionFilter } from './http-exception.filter';
+import { InvalidCredentialsError } from '../../domain/auth/errors/auth-domain.errors';
 
 describe('HttpExceptionFilter', () => {
   let filter: HttpExceptionFilter;
@@ -71,6 +72,20 @@ describe('HttpExceptionFilter', () => {
         message: 'Internal server error',
         path: '/api/v1/auth/validate',
         timestamp: expect.any(String),
+      }),
+    );
+  });
+
+  it('debe mapear InvalidCredentialsError a 401 Unauthorized', () => {
+    const exception = new InvalidCredentialsError();
+
+    filter.catch(exception, mockHost);
+
+    expect(mockResponse.status).toHaveBeenCalledWith(401);
+    expect(mockResponse.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        statusCode: 401,
+        message: 'Invalid credentials',
       }),
     );
   });

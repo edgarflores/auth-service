@@ -1,5 +1,5 @@
 import { DataSource } from 'typeorm';
-import { RoleEntity } from '../../auth/entities/roles.entity';
+import { RoleOrmEntity } from '../../infrastructure/persistence/typeorm/entities/roles-orm.entity';
 
 const ROLES = [
   { name: 'admin', description: 'Administrador del sistema con acceso total' },
@@ -8,7 +8,7 @@ const ROLES = [
 ];
 
 export async function seedRoles(dataSource: DataSource): Promise<void> {
-  const roleRepo = dataSource.getRepository(RoleEntity);
+  const roleRepo = dataSource.getRepository(RoleOrmEntity);
 
   for (const role of ROLES) {
     const existing = await roleRepo.findOne({ where: { name: role.name } });

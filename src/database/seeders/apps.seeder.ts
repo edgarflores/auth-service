@@ -1,7 +1,7 @@
 import { DataSource } from 'typeorm';
-import { AppEntity } from '../../auth/entities/app.entity';
-import { RoleEntity } from '../../auth/entities/roles.entity';
-import { RoleAppEntity } from '../../auth/entities/role-app.entity';
+import { AppOrmEntity } from '../../infrastructure/persistence/typeorm/entities/app-orm.entity';
+import { RoleOrmEntity } from '../../infrastructure/persistence/typeorm/entities/roles-orm.entity';
+import { RoleAppOrmEntity } from '../../infrastructure/persistence/typeorm/entities/role-app-orm.entity';
 
 const APPS = [
   { code: 'ledgerflow', name: 'LedgerFlow', description: 'Sistema de contabilidad y finanzas' },
@@ -9,9 +9,9 @@ const APPS = [
 ];
 
 export async function seedApps(dataSource: DataSource): Promise<void> {
-  const appRepo = dataSource.getRepository(AppEntity);
-  const roleRepo = dataSource.getRepository(RoleEntity);
-  const roleAppRepo = dataSource.getRepository(RoleAppEntity);
+  const appRepo = dataSource.getRepository(AppOrmEntity);
+  const roleRepo = dataSource.getRepository(RoleOrmEntity);
+  const roleAppRepo = dataSource.getRepository(RoleAppOrmEntity);
 
   for (const app of APPS) {
     const existing = await appRepo.findOne({ where: { code: app.code } });

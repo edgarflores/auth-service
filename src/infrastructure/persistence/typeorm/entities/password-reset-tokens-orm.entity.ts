@@ -6,19 +6,19 @@ import {
   CreateDateColumn,
   JoinColumn,
 } from 'typeorm';
-import { User } from './user.entity';
+import { UserOrmEntity } from './user-orm.entity';
 
-@Entity('refresh_tokens')
-export class RefreshTokenEntity {
+@Entity('password_reset_tokens')
+export class PasswordResetTokenOrmEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column('uuid')
   userId: string;
 
-  @ManyToOne(() => User, { onDelete: 'CASCADE' })
+  @ManyToOne(() => UserOrmEntity, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'userId' })
-  user: User;
+  user: UserOrmEntity;
 
   @Column({ unique: true })
   tokenHash: string;
@@ -27,7 +27,7 @@ export class RefreshTokenEntity {
   expiresAt: Date;
 
   @Column({ nullable: true })
-  revokedAt?: Date;
+  usedAt?: Date;
 
   @CreateDateColumn()
   createdAt: Date;
